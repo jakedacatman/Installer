@@ -79,6 +79,8 @@ linuxInstall(){
     cmd="dnf install"
   elif command -v zypper &>/dev/null; then
     cmd="zypper install"
+  elif command -v pacman &>/dev/null; then # ldid is on AUR... use yay or git clone + makepkg
+    cmd="pacman -S"
   else
     cmd="true"
   fi
@@ -108,7 +110,7 @@ installDragonBuild() {
 
   echo "Installing DragonBuild..."
 
-# we're root and want to install as the user we where called from
+# we're root and want to install as the user we were called from
   cat << EOF | su ${INSTALL_USER} -c bash
     shopt -s extglob nullglob
     set -e
@@ -135,7 +137,11 @@ EOF
 
   local _HOME="$(su ${INSTALL_USER} -c echo ${HOME})"
 
-  ln -s ${_HOME}/.dragonbuild/dragon /usr/local/bin/dragon || :
+  if [ -f /usr/bin/dragon ]; then # KDE Dragon Player
+    ln -s ${_HOME}/.dragonbuild/dragon /usr/local/bin/dragonbuild || : # does not conflict
+  else
+    ln -s ${_HOME}/.dragonbuild/dragon /usr/local/bin/dragon || :
+  fi
 }
 
 installDragonBuild
